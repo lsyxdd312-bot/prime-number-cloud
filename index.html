@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>質數先鋒 (網絡排行榜最終版)</title>
+    <title>質數先鋒 (網絡修復最終版)</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; display: flex; justify-content: center; align-items: center; flex-direction: column; background-color: #f0f8ff; padding: 20px; }
         #game-container { position: relative; text-align: center; padding: 20px; padding-bottom: 30px; border: 2px solid #ccc; border-radius: 10px; background-color: #fff; box-shadow: 0 4px 8px rgba(0,0,0,0.1); min-width: 550px; }
@@ -96,15 +96,14 @@
 
     <script>
         window.addEventListener('DOMContentLoaded', () => {
-            // --- 您的專屬網址 ---
-            const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxlYOxHBSnGBcwfnGQM0OzYhMMyYLdh4lT2xFod-5cKPzM8B64fNq6Vc2n_hOL5z5E/exec";
+            // --- 【修改】更新為您新的專屬網址 ---
+            const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwmi_CjvD5WuZ7WWtGyL55CmPbL_NMWrDNnGYoFPAt8O6wJozU85MDIs9YFhUh4gBM/exec";
             
             // --- 元素獲取 ---
             const instructionsTitle = document.getElementById('instructions-title');
             const instructionsText = document.getElementById('instructions-text');
             const level1Button = document.getElementById('select-level1');
             const level2Button = document.getElementById('select-level2');
-            // ... (其他元素獲取)
             const submitLevel1Button = document.getElementById('submit-level1-button');
             const scoreDisplay = document.getElementById('score');
             const timerDisplay = document.getElementById('timer');
@@ -146,7 +145,7 @@
                 `;
             }
 
-            // --- 【重寫】排行榜功能 (網絡版) ---
+            // --- 排行榜功能 (網絡版) ---
             async function updateLeaderboard(playerClass, playerId, newScore) {
                 const data = { playerClass, playerId, newScore };
                 try {
@@ -155,7 +154,8 @@
                         mode: 'cors',
                         cache: 'no-cache',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(data)
+                        body: JSON.stringify(data),
+                        // redirect: "follow" // 處理 Google script 的重定向
                     });
                 } catch (error) {
                     console.error("Error updating leaderboard:", error);
@@ -168,8 +168,10 @@
                 leaderboardBody.innerHTML = '';
                 try {
                     const response = await fetch(SCRIPT_URL);
-                    const board = await response.json();
+                    const boardData = await response.json();
                     
+                    const board = Array.isArray(boardData) ? boardData : [];
+
                     board.sort((a, b) => b.score - a.score);
                     
                     if(board.length === 0) {
@@ -198,8 +200,8 @@
                     submitLevel1Answers(true);
                 } else if(currentLevel === 2) {
                      alert(`時間到！遊戲結束！\n最終得分: ${score}`);
-                     await updateLeaderboard(currentClass, currentStudentId, score); // 改為異步等待
-                     await displayLeaderboard(); // 刷新顯示
+                     await updateLeaderboard(currentClass, currentStudentId, score);
+                     await displayLeaderboard();
                      document.getElementById('difficulty-selector').style.display = 'block';
                      level2Numbers.style.display = 'none';
                      resetInstructions();
@@ -254,7 +256,7 @@
             }
 
             // --- 事件處理 (與上一版相同) ---
-             function handleLevel1Click(event) {
+            function handleLevel1Click(event) {
                 if (!gameActive) return;
                 event.target.classList.toggle('selected');
                 selectedCountDisplay.textContent = document.querySelectorAll('#level1-grid .selected').length;
@@ -370,7 +372,7 @@
                 if (isHidden) {
                     leaderboardContainer.style.display = 'block';
                     toggleLeaderboardButton.textContent = '隱藏排行榜';
-                    await displayLeaderboard(); // 改為異步等待
+                    await displayLeaderboard();
                 } else {
                     leaderboardContainer.style.display = 'none';
                     toggleLeaderboardButton.textContent = '查看排行榜';
